@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -13,6 +15,10 @@ func LogError(errorStr string, err error) {
 }
 
 func main() {
+	// run with -search="iphone" to search for "iphone"
+	searchTerm := flag.String("search", "iphone", "the search term to use")
+	flag.Parse()
+
 	pw, err := playwright.Run()
 
 	if err != nil {
@@ -45,7 +51,7 @@ func main() {
 	// search for "construction" and get all results
 	search := page.Locator("[data-cy='header-search-input']")
 
-	err = search.Fill("iphone")
+	err = search.Fill(*searchTerm)
 	if err != nil {
 		LogError("could not fill search box", err)
 	}
@@ -111,6 +117,6 @@ func main() {
 
 	// write results to file
 	log.Println("Total results:", len(results))
-	os.WriteFile("Results.txt", []byte(strings.Join(results, "\n\n")), 0644)
+	os.WriteFile(fmt.Sprintf("%s.txt", strings.ReplaceAll(*searchTerm, " ", "_")), []byte(strings.Join(results, "\n\n")), 0644)
 
 }
