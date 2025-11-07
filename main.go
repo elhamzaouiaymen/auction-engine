@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -11,7 +14,6 @@ func LogError(errorStr string, err error) {
 }
 
 func main() {
-
 	pw, err := playwright.Run()
 
 	if err != nil {
@@ -56,8 +58,8 @@ func main() {
 
 	results := make([]string, 0)
 	// paginate through results
-	// as long as the next button 
-	// is visible, click it and 
+	// as long as the next button
+	// is visible, click it and
 	// get the results
 	for {
 		hasNext, err := page.Locator("[data-cy='pagination-next-link']").IsVisible()
@@ -65,6 +67,9 @@ func main() {
 			LogError("could not check for next button", err)
 		}
 		if !hasNext {
+			// write results to file
+			log.Println("No more pages. Total results:", len(results))
+			os.WriteFile("Results.txt", []byte(strings.Join(results, "\n")), 0644)
 			break
 		}
 
@@ -101,13 +106,12 @@ func main() {
 
 		_, err = page.Goto(link)
 
-		// err = next.Click()
-		// if err != nil {
-		// 	LogError("could not click next button", err)
-		// }
+		if err != nil {
+			LogError("could not goto next page", err)
+		}
 
-		// // wait for page to load
-		// time.Sleep(2 * time.Second)
-	} 
+		// wait for page to load
+		time.Sleep(2 * time.Second)
+	}
 
 }
