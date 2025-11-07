@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -62,17 +61,6 @@ func main() {
 	// is visible, click it and
 	// get the results
 	for {
-		hasNext, err := page.Locator("[data-cy='pagination-next-link']").IsVisible()
-		if err != nil {
-			LogError("could not check for next button", err)
-		}
-		if !hasNext {
-			// write results to file
-			log.Println("No more pages. Total results:", len(results))
-			os.WriteFile("Results.txt", []byte(strings.Join(results, "\n")), 0644)
-			break
-		}
-
 		// get all results on page
 		items, err := page.Locator("[data-cy='lot-card']").All()
 		if err != nil {
@@ -110,8 +98,19 @@ func main() {
 			LogError("could not goto next page", err)
 		}
 
-		// wait for page to load
-		time.Sleep(2 * time.Second)
+		results = append(results, results...)
+
+		hasNext, err := page.Locator("[data-cy='pagination-next-link']").IsVisible()
+		if err != nil {
+			LogError("could not check for next button", err)
+		}
+		if !hasNext {
+			break
+		}
 	}
+
+	// write results to file
+	log.Println("Total results:", len(results))
+	os.WriteFile("Results.txt", []byte(strings.Join(results, "\n\n")), 0644)
 
 }
